@@ -173,3 +173,18 @@ internship_backend/
 git clone https://github.com/minab/internship-backend.git
 cd internship-backend
 ```
+## Local Development Setup
+
+1. Install dependencies:
+```bash
+go mod download
+```
+
+2. Set up environment variables:
+   - Copy .env.example to .env
+   - Update the values accordingly
+
+3. Run the server:
+```bash
+go run cmd/server/main.go
+```
