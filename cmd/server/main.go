@@ -4,38 +4,38 @@ package main
 import (
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/joho/godotenv"
 	"github.com/minab/internship-backend/config"
 	"github.com/minab/internship-backend/internal/api"
-	"github.com/minab/internship-backend/internal/db"
+	"github.com/minab/internship-backend/internal/middleware"
 	"github.com/minab/internship-backend/internal/repository"
 	"github.com/minab/internship-backend/internal/service"
 )
 
-func main() {
-	cfg := config.Load()
+// ...existing imports...
 
+func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found, using environment variables")
 	}
 
-	connStr := os.Getenv("DATABASE_URL")
-	if connStr == "" {
-		log.Fatal("DATABASE_URL environment variable required")
-	}
+	cfg := config.Load()
 
-	dbConn, err := db.Connect(connStr)
-	if err != nil {
-		log.Fatalf("Failed to connect to DB: %v", err)
-	}
-
-	userRepo := repository.NewUserRepository(dbConn)
+	userRepo := repository.NewUserRepository(cfg.Database)
 	userService := service.NewUserService(userRepo)
 
 	mux := http.NewServeMux()
-	api.RegisterRoutes(mux, userService)
+
+	// Register only public routes here (e.g., login, register)
+	api.RegisterPublicRoutes(mux, userService)
+
+	// Register protected routes on a separate mux
+	protectedMux := http.NewServeMux()
+	api.RegisterProtectedRoutes(protectedMux, userService)
+
+	// Protect all /api/v1/ routes except login/register
+	mux.Handle("/api/v1/", middleware.JWTAuth(protectedMux))
 
 	log.Printf("Server running on port %s\n", cfg.Port)
 	if err := http.ListenAndServe(":"+cfg.Port, mux); err != nil {

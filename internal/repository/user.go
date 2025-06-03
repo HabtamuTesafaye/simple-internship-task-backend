@@ -70,3 +70,14 @@ func (r *UserRepository) ListUsers(ctx context.Context) ([]*model.User, error) {
 	}
 	return users, nil
 }
+
+// GetUserByEmail retrieves a user by their email from the database.
+func (r *UserRepository) GetUserByEmail(ctx context.Context, email string) (*model.User, error) {
+	user := &model.User{}
+	err := r.db.QueryRowContext(ctx, "SELECT id, full_name, email, password, role, created_at FROM users WHERE email=$1", email).
+		Scan(&user.ID, &user.FullName, &user.Email, &user.Password, &user.Role, &user.CreatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}

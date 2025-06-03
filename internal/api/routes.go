@@ -6,7 +6,12 @@ import (
 	"github.com/minab/internship-backend/internal/service"
 )
 
-func RegisterRoutes(mux *http.ServeMux, userService *service.UserService) {
+func RegisterPublicRoutes(mux *http.ServeMux, userService *service.UserService) {
+	authHandler := NewAuthHandler(userService)
+	mux.HandleFunc("/api/v1/login", authHandler.Login)
+}
+
+func RegisterProtectedRoutes(mux *http.ServeMux, userService *service.UserService) {
 	userHandler := NewUserHandler(userService)
 
 	// /api/v1/users - GET and POST
@@ -24,7 +29,6 @@ func RegisterRoutes(mux *http.ServeMux, userService *service.UserService) {
 	// /api/v1/users/{id} - GET
 	mux.HandleFunc("/api/v1/users/", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
-			// you must parse the ID manually since http.ServeMux doesn’t support params
 			userHandler.GetUser(w, r)
 			return
 		}
@@ -39,4 +43,5 @@ func RegisterRoutes(mux *http.ServeMux, userService *service.UserService) {
 		}
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	})
+
 }
