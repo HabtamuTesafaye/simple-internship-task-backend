@@ -172,3 +172,6 @@ internship_backend/
 ```bash
 git clone https://github.com/minab/internship-backend.git
 cd internship-backend
+```
+
+## Added a small change for YOLO badge
