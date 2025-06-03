@@ -1,3 +1,4 @@
+// cmd/server/main.go
 package main
 
 import (
@@ -32,10 +33,9 @@ func main() {
 
 	userRepo := repository.NewUserRepository(dbConn)
 	userService := service.NewUserService(userRepo)
-	userHandler := api.NewUserHandler(userService)
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/api/v1/users/", userHandler.GetUser)
+	api.RegisterRoutes(mux, userService)
 
 	log.Printf("Server running on port %s\n", cfg.Port)
 	if err := http.ListenAndServe(":"+cfg.Port, mux); err != nil {
