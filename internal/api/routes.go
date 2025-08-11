@@ -6,24 +6,42 @@ import (
 	"github.com/minab/internship-backend/internal/service"
 )
 
-func RegisterPublicRoutes(mux *http.ServeMux, userService *service.UserService) {
+// RegisterPublicRoutes sets up public endpoints: login and register.
+func RegisterPublicRoutes(mux *http.ServeMux, userService *service.UserService, passwordResetService *service.PasswordResetService) {
 	authHandler := NewAuthHandler(userService)
-	mux.HandleFunc("/api/v1/login", authHandler.Login)
+	userHandler := NewUserHandler(userService)
+
+	mux.HandleFunc("/api/v1/login", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		authHandler.Login(w, r)
+	})
+
+	mux.HandleFunc("/api/v1/register", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		userHandler.CreateUser(w, r)
+	})
+
+	passwordResetHandler := NewPasswordResetHandler(passwordResetService)
+	mux.HandleFunc("/api/v1/forgot-password", passwordResetHandler.ForgotPassword)
+	mux.HandleFunc("/api/v1/reset-password", passwordResetHandler.ResetPassword)
 }
 
 func RegisterProtectedRoutes(mux *http.ServeMux, userService *service.UserService) {
 	userHandler := NewUserHandler(userService)
 
-	// /api/v1/users - GET and POST
+	// /api/v1/users - GET only (listing users, protected)
 	mux.HandleFunc("/api/v1/users", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodPost:
-			userHandler.CreateUser(w, r)
-		case http.MethodGet:
+		if r.Method == http.MethodGet {
 			userHandler.ListUsers(w, r)
-		default:
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
 		}
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	})
 
 	// /api/v1/users/{id} - GET
@@ -43,5 +61,4 @@ func RegisterProtectedRoutes(mux *http.ServeMux, userService *service.UserServic
 		}
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	})
-
 }

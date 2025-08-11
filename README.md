@@ -20,6 +20,7 @@ internship_backend/
 │   ├── middleware/     # HTTP middleware (JWT auth)
 │   └── util/           # Utility functions (JWT, hashing, context)
 ├── migrations/         # SQL schema and migrations
+├── docs/               # Swagger/OpenAPI documentation
 ├── .env                # Environment variables (not committed)
 ├── .gitignore          # Git ignore rules
 ├── go.mod              # Go module definition
@@ -37,6 +38,7 @@ internship_backend/
   - Connects to PostgreSQL.
   - Sets up router and middleware.
   - Starts the HTTP server.
+  - Serves Swagger UI at `/swagger/` in development mode.
 
 ### `config/`
 - **Purpose**: Centralized configuration logic.
@@ -54,6 +56,7 @@ internship_backend/
   - **Files**:
     - `auth.go`: Handles login and JWT issuance.
     - `user.go`: Handles user CRUD endpoints.
+    - `change_password.go`: Handles password reset requests.
     - `routes.go`: Registers public and protected routes.
 
 ### `internal/service/`
@@ -64,6 +67,7 @@ internship_backend/
   - Handles password hashing and user creation.
   - **Files**:
     - `user.go`: User-related business logic.
+    - `change_password.go`: Password reset logic.
 
 ### `internal/repository/`
 - **Purpose**: Database access layer.
@@ -73,6 +77,7 @@ internship_backend/
   - Expose clean functions like `GetUserByEmail(email)`.
   - **Files**:
     - `user.go`: UserRepository implementation.
+    - `change_password.go`: PasswordResetRepository implementation.
 
 ### `internal/model/`
 - **Purpose**: Go structs for domain entities.
@@ -81,6 +86,7 @@ internship_backend/
   - Map database rows to Go structs.
   - **Files**:
     - `user.go`: User struct.
+    - `change_password.go`: PasswordResetToken struct.
 
 ### `internal/middleware/`
 - **Purpose**: HTTP middleware components.
@@ -97,7 +103,8 @@ internship_backend/
   - **Files**:
     - `jwt.go`: JWT generation and parsing.
     - `encrypt.go`: Password hashing and verification.
-    - `ContextWithClaims.go`: Context helpers for JWT claims.
+    - `context_with_claims.go`: Context helpers for JWT claims.
+    - `email.go`: Email sending utility.
 
 ### `internal/db/`
 - **Purpose**: Database connection handling.
@@ -106,12 +113,23 @@ internship_backend/
   - **Files**:
     - `postgres.go`: Connects to PostgreSQL.
 
+### `internal/templates/`
+- **Purpose**: HTML templates for emails.
+- **Files**:
+    - `reset_password.html`: Password reset email template.
+
 ### `migrations/`
 - **Purpose**: SQL schema and migrations.
 - **Responsibilities**:
   - Define and update database schema.
   - **Files**:
     - `schema.sql`: Table definitions for users, assignments, appointments.
+
+### `docs/`
+- **Purpose**: API documentation (Swagger/OpenAPI).
+- **Files**:
+    - `swagger.yaml` / `swagger.json`: OpenAPI definitions.
+    - `docs.go`: Auto-generated Swagger docs for Go.
 
 ### `.env`
 - **Purpose**: Environment variables for local development.
@@ -133,8 +151,27 @@ internship_backend/
 ### 2. 👤 User Management
 - CRUD endpoints for users under `/api/v1/users` (protected by JWT).
 
-### 3. 🗄️ Database
+### 3. 🔑 Password Reset
+- Request password reset via `/api/v1/forgot-password`.
+- Reset password via `/api/v1/reset-password` using token sent to email.
+
+### 4. 🗄️ Database
 - PostgreSQL stores users, assignments, and appointments.
+
+---
+
+## 📖 API Documentation (Swagger)
+
+- **Swagger UI** is available at [`/swagger/`](http://localhost:4000/swagger/) when running in development mode.
+- OpenAPI specs are defined in [`docs/swagger.yaml`](docs/swagger.yaml) and [`docs/swagger.json`](docs/swagger.json).
+- Endpoints include:
+  - `POST /api/v1/login` – User login, returns JWT.
+  - `POST /api/v1/register` – Create a new user.
+  - `GET /api/v1/users` – List all users (JWT required).
+  - `GET /api/v1/users/{id}` – Get user by ID (JWT required).
+  - `PUT /api/v1/users/update/{id}` – Update user (JWT required).
+  - `POST /api/v1/forgot-password` – Request password reset.
+  - `POST /api/v1/reset-password` – Reset password with token.
 
 ---
 
@@ -143,6 +180,7 @@ internship_backend/
 - **Golang 1.23**
 - **PostgreSQL**
 - **JWT Authentication**
+- **Swagger/OpenAPI Documentation**
 - **Clean Architecture Principles**
 
 ---
@@ -167,3 +205,14 @@ go mod download
 ```bash
 go run cmd/server/main.go
 ```
+
+### 5. View API docs
+- Open [http://localhost:4000/swagger/](http://localhost:4000/swagger/) in your browser.
+
+---
+
+## 📝 Notes
+
+- All protected endpoints require a valid JWT in the `Authorization: Bearer <token>` header.
+- Password reset emails use the template in [`internal/templates/reset_password.html`](internal/templates/reset_password.html).
+- See [`docs/swagger.yaml`](docs/swagger.yaml) for full endpoint specs and

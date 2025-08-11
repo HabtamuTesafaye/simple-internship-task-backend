@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/minab/internship-backend/internal/model"
 	"github.com/minab/internship-backend/internal/repository"
@@ -17,21 +16,26 @@ func NewUserService(repo *repository.UserRepository) *UserService {
 	return &UserService{repo: repo}
 }
 
-func (s *UserService) GetUser(ctx context.Context, id int) (*model.User, error) {
-	fmt.Printf("Fetching user with ID: %d\n", id)
+func (s *UserService) GetUser(ctx context.Context, id string) (*model.User, error) {
 	return s.repo.GetUserByID(ctx, id)
 }
 
-func (s *UserService) CreateUser(ctx context.Context, user *model.User) (*model.User, error) {
-	hashed, err := util.HashPassword(user.Password)
+func (s *UserService) CreateUser(ctx context.Context, req *model.CreateUserRequest) (*model.User, error) {
+	hashed, err := util.HashPassword(req.Password)
 	if err != nil {
 		return nil, err
 	}
-	user.Password = hashed
+	user := &model.User{
+		FullName:    req.FullName,
+		Email:       req.Email,
+		Password:    hashed,
+		PhoneNumber: req.PhoneNumber,
+		Role:        req.Role,
+	}
 	return s.repo.CreateUser(ctx, user)
 }
 
-func (s *UserService) UpdateUser(ctx context.Context, id int, user *model.User) (*model.User, error) {
+func (s *UserService) UpdateUser(ctx context.Context, id string, user *model.User) (*model.User, error) {
 	return s.repo.UpdateUser(ctx, id, user)
 }
 

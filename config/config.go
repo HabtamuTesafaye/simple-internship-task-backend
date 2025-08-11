@@ -11,11 +11,14 @@ import (
 type Config struct {
 	Port     string
 	Database *sql.DB
+	AppEnv   string
 }
 
 func Load() *Config {
 	port := getEnv("PORT", "8080")
 	dbURL := getEnv("DATABASE_URL", "")
+	appEnv := getEnv("APP_ENV", "development")
+
 	if dbURL == "" {
 		log.Fatal("DATABASE_URL environment variable required")
 	}
@@ -26,9 +29,11 @@ func Load() *Config {
 	if err := db.Ping(); err != nil {
 		log.Fatalf("Failed to ping DB: %v", err)
 	}
+
 	return &Config{
 		Port:     port,
 		Database: db,
+		AppEnv:   appEnv,
 	}
 }
 

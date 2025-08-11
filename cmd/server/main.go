@@ -7,13 +7,23 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/minab/internship-backend/config"
+	_ "github.com/minab/internship-backend/docs"
 	"github.com/minab/internship-backend/internal/api"
 	"github.com/minab/internship-backend/internal/middleware"
 	"github.com/minab/internship-backend/internal/repository"
 	"github.com/minab/internship-backend/internal/service"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
-// ...existing imports...
+///================ swagger doc configuration
+// @title Internship API
+// @version 1.0
+// @description API backend for internship portal.
+// @host localhost:4000
+// @BasePath /api/v1
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 
 func main() {
 	if err := godotenv.Load(); err != nil {
@@ -27,8 +37,16 @@ func main() {
 
 	mux := http.NewServeMux()
 
+	if cfg.AppEnv == "development" {
+		log.Println("Swagger UI available at /swagger/")
+		mux.Handle("/swagger/", httpSwagger.WrapHandler)
+	}
+
+	passwordResetRepo := repository.NewPasswordResetRepository(cfg.Database)
+	passwordResetService := service.NewPasswordResetService(passwordResetRepo, userRepo)
+
 	// Register only public routes here (e.g., login, register)
-	api.RegisterPublicRoutes(mux, userService)
+	api.RegisterPublicRoutes(mux, userService, passwordResetService)
 
 	// Register protected routes on a separate mux
 	protectedMux := http.NewServeMux()

@@ -21,6 +21,16 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
+// @Summary Login
+// @Description Authenticate user and return JWT token
+// @Tags auth
+// @Accept  json
+// @Produce  json
+// @Param credentials body LoginRequest true "Login credentials"
+// @Success 200 {object} map[string]string
+// @Failure 400 {string} string "Invalid request"
+// @Failure 401 {string} string "Invalid credentials"
+// @Router /login [post]
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

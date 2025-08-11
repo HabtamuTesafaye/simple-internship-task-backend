@@ -1,0 +1,277 @@
+basePath: /api/v1
+definitions:
+  api.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  api.UserResponse:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      full_name:
+        type: string
+      id:
+        type: string
+      phone_number:
+        type: string
+      role:
+        type: string
+    type: object
+  model.CreateUserRequest:
+    properties:
+      email:
+        type: string
+      full_name:
+        type: string
+      password:
+        type: string
+      phone_number:
+        type: string
+      role:
+        type: string
+    required:
+    - email
+    - full_name
+    - password
+    type: object
+host: localhost:4000
+info:
+  contact: {}
+  description: API backend for internship portal.
+  title: Internship API
+  version: "1.0"
+paths:
+  /forgot-password:
+    post:
+      consumes:
+      - application/json
+      description: Send password reset link to user's email
+      parameters:
+      - description: User email
+        in: body
+        name: email
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            type: string
+        "404":
+          description: User not found
+          schema:
+            type: string
+      summary: Request password reset
+      tags:
+      - password
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user and return JWT token
+      parameters:
+      - description: Login credentials
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/api.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            type: string
+        "401":
+          description: Invalid credentials
+          schema:
+            type: string
+      summary: Login
+      tags:
+      - auth
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Create a user with the given data
+      parameters:
+      - description: User Data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/model.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api.UserResponse'
+        "400":
+          description: Invalid request body
+          schema:
+            type: string
+        "500":
+          description: Failed to create user
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Create a new user
+      tags:
+      - users
+  /reset-password:
+    post:
+      consumes:
+      - application/json
+      description: Reset user password using token
+      parameters:
+      - description: Token and new password
+        in: body
+        name: reset
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Invalid request or expired token
+          schema:
+            type: string
+      summary: Reset password
+      tags:
+      - password
+  /users:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all users
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/api.UserResponse'
+            type: array
+        "500":
+          description: Failed to list users
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: List all users
+      tags:
+      - users
+  /users/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a single user by their ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.UserResponse'
+        "400":
+          description: Missing user ID
+          schema:
+            type: string
+        "404":
+          description: User not found
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get a user by ID
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Update fields of a user
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: updates
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.UserResponse'
+        "400":
+          description: Invalid request body or missing user ID
+          schema:
+            type: string
+        "404":
+          description: User not found
+          schema:
+            type: string
+        "500":
+          description: Failed to update user
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Update a user
+      tags:
+      - users
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
